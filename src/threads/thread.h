@@ -93,10 +93,12 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-#ifdef USERPROG
-    /* Owned by userprog/process.c. */
-    uint32_t *pagedir;                  /* Page directory. */
-#endif
+    int64_t sleep_ticks;                /* amount of time to sleep in ticks */
+
+    #ifdef USERPROG
+      /* Owned by userprog/process.c. */
+      uint32_t *pagedir;                  /* Page directory. */
+    #endif
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
