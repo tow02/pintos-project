@@ -100,7 +100,7 @@ list_end (struct list *list)
 /* Returns the LIST's reverse beginning, for iterating through
    LIST in reverse order, from back to front. */
 struct list_elem *
-list_rbegin (struct list *list) 
+list_rbegin (struct list *list)
 {
   ASSERT (list != NULL);
   return list->tail.prev;
@@ -130,7 +130,7 @@ list_prev (struct list_elem *elem)
         }
 */
 struct list_elem *
-list_rend (struct list *list) 
+list_rend (struct list *list)
 {
   ASSERT (list != NULL);
   return &list->head;
@@ -142,13 +142,13 @@ list_rend (struct list *list)
    through a list, e.g.:
 
       e = list_head (&list);
-      while ((e = list_next (e)) != list_end (&list)) 
+      while ((e = list_next (e)) != list_end (&list))
         {
           ...
         }
 */
 struct list_elem *
-list_head (struct list *list) 
+list_head (struct list *list)
 {
   ASSERT (list != NULL);
   return &list->head;
@@ -156,7 +156,7 @@ list_head (struct list *list)
 
 /* Return's LIST's tail. */
 struct list_elem *
-list_tail (struct list *list) 
+list_tail (struct list *list)
 {
   ASSERT (list != NULL);
   return &list->tail;
@@ -314,7 +314,7 @@ list_empty (struct list *list)
 
 /* Swaps the `struct list_elem *'s that A and B point to. */
 static void
-swap (struct list_elem **a, struct list_elem **b) 
+swap (struct list_elem **a, struct list_elem **b)
 {
   struct list_elem *t = *a;
   *a = *b;
@@ -325,15 +325,15 @@ swap (struct list_elem **a, struct list_elem **b)
 void
 list_reverse (struct list *list)
 {
-  if (!list_empty (list)) 
-    {
-      struct list_elem *e;
+  if (!list_empty (list))
+  {
+    struct list_elem *e;
 
-      for (e = list_begin (list); e != list_end (list); e = e->prev)
-        swap (&e->prev, &e->next);
-      swap (&list->head.next, &list->tail.prev);
-      swap (&list->head.next->prev, &list->tail.prev->next);
-    }
+    for (e = list_begin (list); e != list_end (list); e = e->prev)
+      swap (&e->prev, &e->next);
+    swap (&list->head.next, &list->tail.prev);
+    swap (&list->head.next->prev, &list->tail.prev->next);
+  }
 }
 
 /* Returns true only if the list elements A through B (exclusive)
@@ -343,7 +343,7 @@ is_sorted (struct list_elem *a, struct list_elem *b,
            list_less_func *less, void *aux)
 {
   if (a != b)
-    while ((a = list_next (a)) != b) 
+    while ((a = list_next (a)) != b)
       if (less (a, list_prev (a), aux))
         return false;
   return true;
@@ -362,11 +362,11 @@ find_end_of_run (struct list_elem *a, struct list_elem *b,
   ASSERT (b != NULL);
   ASSERT (less != NULL);
   ASSERT (a != b);
-  
-  do 
-    {
-      a = list_next (a);
-    }
+
+  do
+  {
+    a = list_next (a);
+  }
   while (a != b && !less (a, list_prev (a), aux));
   return a;
 }
@@ -389,13 +389,13 @@ inplace_merge (struct list_elem *a0, struct list_elem *a1b0,
   ASSERT (is_sorted (a1b0, b1, less, aux));
 
   while (a0 != a1b0 && a1b0 != b1)
-    if (!less (a1b0, a0, aux)) 
+    if (!less (a1b0, a0, aux))
       a0 = list_next (a0);
-    else 
-      {
-        a1b0 = list_next (a1b0);
-        list_splice (a0, list_prev (a1b0), a1b0);
-      }
+    else
+    {
+      a1b0 = list_next (a1b0);
+      list_splice (a0, list_prev (a1b0), a1b0);
+    }
 }
 
 /* Sorts LIST according to LESS given auxiliary data AUX, using a
@@ -412,28 +412,28 @@ list_sort (struct list *list, list_less_func *less, void *aux)
   /* Pass over the list repeatedly, merging adjacent runs of
      nondecreasing elements, until only one run is left. */
   do
+  {
+    struct list_elem *a0;     /* Start of first run. */
+    struct list_elem *a1b0;   /* End of first run, start of second. */
+    struct list_elem *b1;     /* End of second run. */
+
+    output_run_cnt = 0;
+    for (a0 = list_begin (list); a0 != list_end (list); a0 = b1)
     {
-      struct list_elem *a0;     /* Start of first run. */
-      struct list_elem *a1b0;   /* End of first run, start of second. */
-      struct list_elem *b1;     /* End of second run. */
+      /* Each iteration produces one output run. */
+      output_run_cnt++;
 
-      output_run_cnt = 0;
-      for (a0 = list_begin (list); a0 != list_end (list); a0 = b1)
-        {
-          /* Each iteration produces one output run. */
-          output_run_cnt++;
+      /* Locate two adjacent runs of nondecreasing elements
+         A0...A1B0 and A1B0...B1. */
+      a1b0 = find_end_of_run (a0, list_end (list), less, aux);
+      if (a1b0 == list_end (list))
+        break;
+      b1 = find_end_of_run (a1b0, list_end (list), less, aux);
 
-          /* Locate two adjacent runs of nondecreasing elements
-             A0...A1B0 and A1B0...B1. */
-          a1b0 = find_end_of_run (a0, list_end (list), less, aux);
-          if (a1b0 == list_end (list))
-            break;
-          b1 = find_end_of_run (a1b0, list_end (list), less, aux);
-
-          /* Merge the runs. */
-          inplace_merge (a0, a1b0, b1, less, aux);
-        }
+      /* Merge the runs. */
+      inplace_merge (a0, a1b0, b1, less, aux);
     }
+  }
   while (output_run_cnt > 1);
 
   ASSERT (is_sorted (list_begin (list), list_end (list), less, aux));
@@ -475,12 +475,12 @@ list_unique (struct list *list, struct list *duplicates,
 
   elem = list_begin (list);
   while ((next = list_next (elem)) != list_end (list))
-    if (!less (elem, next, aux) && !less (next, elem, aux)) 
-      {
-        list_remove (next);
-        if (duplicates != NULL)
-          list_push_back (duplicates, next);
-      }
+    if (!less (elem, next, aux) && !less (next, elem, aux))
+    {
+      list_remove (next);
+      if (duplicates != NULL)
+        list_push_back (duplicates, next);
+    }
     else
       elem = next;
 }
@@ -493,14 +493,14 @@ struct list_elem *
 list_max (struct list *list, list_less_func *less, void *aux)
 {
   struct list_elem *max = list_begin (list);
-  if (max != list_end (list)) 
-    {
-      struct list_elem *e;
-      
-      for (e = list_next (max); e != list_end (list); e = list_next (e))
-        if (less (max, e, aux))
-          max = e; 
-    }
+  if (max != list_end (list))
+  {
+    struct list_elem *e;
+
+    for (e = list_next (max); e != list_end (list); e = list_next (e))
+      if (less (max, e, aux))
+        max = e;
+  }
   return max;
 }
 
@@ -512,13 +512,12 @@ struct list_elem *
 list_min (struct list *list, list_less_func *less, void *aux)
 {
   struct list_elem *min = list_begin (list);
-  if (min != list_end (list)) 
-    {
-      struct list_elem *e;
-      
-      for (e = list_next (min); e != list_end (list); e = list_next (e))
-        if (less (e, min, aux))
-          min = e; 
-    }
+  if (min != list_end (list))
+  {
+    struct list_elem *e;
+    for (e = list_next (min); e != list_end (list); e = list_next (e))
+      if (less (e, min, aux))
+        min = e;
+  }
   return min;
 }
