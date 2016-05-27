@@ -92,16 +92,18 @@ timer_sleep (int64_t ticks)
 {
   int64_t start = timer_ticks ();
 
-  ASSERT (intr_get_level () == INTR_ON);
+  if (ticks > 0) {
+    ASSERT (intr_get_level () == INTR_ON);
 
-  /* assign requested sleep time to current thread */
-  thread_current()->sleep_ticks = ticks;
-  /* need to disable interrupts in order to call thread_block */
-  enum intr_level old_level = intr_disable();
-  /* block current thread */
-  thread_block();
-  /* set the interrupt to the state it was before to prevent error */
-  intr_set_level(old_level);
+    /* assign requested sleep time to current thread */
+    thread_current()->sleep_ticks = ticks;
+    /* need to disable interrupts in order to call thread_block */
+    enum intr_level old_level = intr_disable();
+    /* block current thread */
+    thread_block();
+    /* set the interrupt to the state it was before to prevent error */
+    intr_set_level(old_level);
+  }
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
