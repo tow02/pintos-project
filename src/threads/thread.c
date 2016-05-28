@@ -4,6 +4,7 @@
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
+#include "threads/fixed-point.h"
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -74,6 +75,9 @@ list_less_func *
 priority_comparison(const struct list_elem *a,
                     const struct list_elem *b,
                     void *aux);
+void mlfqs_load_avg(void);
+
+static int load_avg=0;
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -395,8 +399,8 @@ thread_get_nice (void)
 int
 thread_get_load_avg (void)
 {
-  /* Not yet implemented. */
-  return 0;
+  int tmp = FIXED_POINT_TO_INT_NEAREST(MULTIPLY_MIX(load_avg, 100));
+  return tmp;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -621,4 +625,17 @@ priority_comparison(const struct list_elem *a,
     return true;
   }
   return false;
+}
+
+void
+mlfqs_load_avg(void) {
+  int term2 = list_size(&ready_list);
+  if (thread_current() != idle_thread)
+  {
+    term2++;
+  }
+  int term1 = DIVIDE_MIX(INT_TO_FIXED_POINT(59), 60);
+  term1 = MULTIPLY_FIX(term1, load_avg);
+  term2 = DIVIDE_MIX(INT_TO_FIXED_POINT(term2), 60);
+  load_avg = ADD_FIX(term1, term2);
 }

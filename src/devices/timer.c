@@ -185,6 +185,14 @@ timer_interrupt (struct intr_frame *args UNUSED)
 
   /* Check every thread with wake_threads() after each tick */
   thread_foreach(wake_threads, 0);
+  if (thread_mlfqs)
+  {
+    if (timer_ticks() % TIMER_FREQ == 0)
+    {
+      mlfqs_load_avg();
+    }
+  }
+
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
