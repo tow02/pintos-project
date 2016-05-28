@@ -187,9 +187,11 @@ timer_interrupt (struct intr_frame *args UNUSED)
   thread_foreach(wake_threads, 0);
   if (thread_mlfqs)
   {
+    mlfqs_increment();
     if (timer_ticks() % TIMER_FREQ == 0)
     {
       mlfqs_load_avg();
+      thread_foreach(mlfqs_recent_cpu, 0);
     }
   }
 

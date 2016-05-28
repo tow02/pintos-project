@@ -384,15 +384,14 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED)
 {
-  /* Not yet implemented. */
+  thread_current()->nice = nice;
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void)
 {
-  /* Not yet implemented. */
-  return 0;
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
@@ -407,8 +406,8 @@ thread_get_load_avg (void)
 int
 thread_get_recent_cpu (void)
 {
-  /* Not yet implemented. */
-  return 0;
+  int tmp = FIXED_POINT_TO_INT_NEAREST(MULTIPLY_MIX(thread_current()->recent_cpu, 100));
+  return tmp;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -497,6 +496,9 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
+
+  t->nice = 0;
+  t->recent_cpu = 0;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -638,4 +640,26 @@ mlfqs_load_avg(void) {
   term1 = MULTIPLY_FIX(term1, load_avg);
   term2 = DIVIDE_MIX(INT_TO_FIXED_POINT(term2), 60);
   load_avg = ADD_FIX(term1, term2);
+}
+
+void
+mlfqs_recent_cpu(struct thread *t, void *aux) {
+  if (t == idle_thread)
+  {
+    return;
+  }
+  int term1 = MULTIPLY_MIX(load_avg, 2);
+  term1 = DIVIDE_FIX(term1, ADD_MIX(term1, 1));
+  term1 = MULTIPLY_FIX(term1, t->recent_cpu);
+  t->recent_cpu = ADD_MIX(term1, t->nice);
+}
+
+void
+mlfqs_increment(void)
+{
+  if (thread_current() == idle_thread)
+  {
+    return;
+  }
+  thread_current()->recent_cpu = ADD_MIX(thread_current()->recent_cpu, 1);
 }
