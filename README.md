@@ -1,4 +1,4 @@
-## ICCS315 Operating Systems Project
+## Pintos Project 1
 
 ### Team Member
 - [Paween Theanvanichpant](https://github.com/tow02)
